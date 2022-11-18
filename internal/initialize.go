@@ -65,7 +65,7 @@ func Initialize() {
 				name := ctx.Args().Get(0)
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
 
-				if len(res.Description) > 0 {
+				if len(res.Name) > 0 {
 					printInfo(res)
 				} else {
 					color.Red("No one package was found")
