@@ -84,8 +84,9 @@ func Initialize() {
 				agreement = strings.ToLower(agreement)
 
 				if agreement == "yes" || agreement == "y" {
+					(exec.Command("mkdir ~/mirage-packages")).Run()
 					(exec.Command("cd ~/mirage-packages")).Run()
-					(exec.Command("git clone " + res.GitUrl + " ."))
+					(exec.Command("git clone " + res.GitUrl + " .")).Run()
 				} else {
 					color.HiRed("Installation was stopped")
 				}
