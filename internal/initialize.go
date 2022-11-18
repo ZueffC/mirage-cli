@@ -64,7 +64,13 @@ func Initialize() {
 			Action: func(ctx *cli.Context) error {
 				name := ctx.Args().Get(0)
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
-				printInfo(res)
+
+				if len(res.Description) > 0 {
+					printInfo(res)
+				} else {
+					color.Red("No one package was found")
+				}
+
 				return nil
 			},
 		},
@@ -77,19 +83,24 @@ func Initialize() {
 				var agreement string
 				name := ctx.Args().Get(0)
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
-				printInfo(res)
 
-				fmt.Print("Do y wanna install it? [Y/N]: ")
-				fmt.Scan(&agreement)
-				agreement = strings.ToLower(agreement)
+				if len(res.Description) > 0 {
+					printInfo(res)
+					fmt.Print("Do y wanna install it? [Y/N]: ")
+					fmt.Scan(&agreement)
+					agreement = strings.ToLower(agreement)
 
-				if agreement == "yes" || agreement == "y" {
-					(exec.Command("mkdir ~/mirage-packages")).Run()
-					(exec.Command("cd ~/mirage-packages")).Run()
-					(exec.Command("git clone " + res.GitUrl + " .")).Run()
+					if agreement == "yes" || agreement == "y" {
+						(exec.Command("mkdir ~/mirage-packages")).Run()
+						(exec.Command("cd ~/mirage-packages")).Run()
+						(exec.Command("git clone " + res.GitUrl + " .")).Run()
+					} else {
+						color.HiRed("Installation was stopped")
+					}
 				} else {
-					color.HiRed("Installation was stopped")
+					color.Red("No one package found")
 				}
+
 				return nil
 			},
 		},
