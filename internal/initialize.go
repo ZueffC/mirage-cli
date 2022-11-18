@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"mirage-cli/internal/additions"
 	"os"
+	"os/exec"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,6 +19,12 @@ var App cli.App
 
 type Nodes struct {
 	Nodes []string
+}
+
+func printInfo(res *additions.PackageData) {
+	color.Cyan("[INFO] Found 1 package: %s", res.Name)
+	color.Cyan("[INFO] It`s description:")
+	color.Yellow(res.Description)
 }
 
 func Initialize() {
@@ -55,8 +64,31 @@ func Initialize() {
 			Action: func(ctx *cli.Context) error {
 				name := ctx.Args().Get(0)
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
-				println(res.GitUrl)
+				printInfo(res)
+				return nil
+			},
+		},
 
+		&cli.Command{
+			Name:        "install",
+			Aliases:     []string{"ins", "i"},
+			Description: "this command will install package on your machine",
+			Action: func(ctx *cli.Context) error {
+				var agreement string
+				name := ctx.Args().Get(0)
+				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
+				printInfo(res)
+
+				fmt.Print("Do y wanna install it? [Y/N]: ")
+				fmt.Scan(&agreement)
+				agreement = strings.ToLower(agreement)
+
+				if agreement == "yes" || agreement == "y" {
+					(exec.Command("cd ~/mirage-packages")).Run()
+					(exec.Command("git clone " + res.GitUrl + " ."))
+				} else {
+					color.HiRed("Installation was stopped")
+				}
 				return nil
 			},
 		},
