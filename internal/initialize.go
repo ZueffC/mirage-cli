@@ -6,12 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
@@ -22,28 +20,12 @@ type Nodes struct {
 	Nodes []string
 }
 
-func printInfo(res *additions.PackageData) {
-	color.Cyan("[INFO] Found 1 package: %s", res.Name)
-	color.Cyan("[INFO] It`s description:")
-	color.Yellow(res.Description)
-}
-
 func Initialize() {
 	var config Nodes
 
 	yearNow := strconv.Itoa(time.Now().Year())
-	_, err := toml.DecodeFile("nodes.toml", &config)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
 
-	typ, val := reflect.TypeOf(config), reflect.ValueOf(config)
-	nodes := make([]string, typ.NumField())
-
-	for i := 0; i < typ.NumField(); i++ {
-		nodes[i] = fmt.Sprintf("%v", val.Field(i).Interface())
-	}
+	nodes := additions.TOMLParser(config, "nodes.toml")
 
 	App.Name = "mirage"
 	App.Usage = "blazingly fast package manager"
@@ -67,7 +49,7 @@ func Initialize() {
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
 
 				if len(res.Name) > 0 {
-					printInfo(res)
+					additions.PrintInfo(res)
 				} else {
 					color.Red("No one package was found")
 				}
@@ -86,7 +68,7 @@ func Initialize() {
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
 
 				if len(res.Description) > 0 {
-					printInfo(res)
+					additions.PrintInfo(res)
 					fmt.Print("Do y wanna install it? [Y/N]: ")
 					fmt.Scan(&agreement)
 					agreement = strings.ToLower(agreement)
@@ -99,6 +81,8 @@ func Initialize() {
 						cmd := exec.Command("git", "clone", res.GitUrl)
 						cmd.Dir = homedir + "/mirage"
 						cmd.Run()
+
+						//pathToPackage := homedir + "/mirage/" + name
 
 						if err != nil {
 							panic(err)

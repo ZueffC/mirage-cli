@@ -2,7 +2,11 @@ package additions
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
+	"reflect"
 
+	"github.com/BurntSushi/toml"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -37,4 +41,21 @@ func SearchByNameQuery(name, url string) *PackageData {
 	}
 
 	return &result
+}
+
+func TOMLParser(config interface{}, filename string) []string {
+	_, err := toml.DecodeFile(filename, &config)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	typ, val := reflect.TypeOf(config), reflect.ValueOf(&config)
+	nodes := make([]string, typ.NumField())
+
+	for i := 0; i < typ.NumField(); i++ {
+		nodes[i] = fmt.Sprintf("%v", val.Field(i).Interface())
+	}
+
+	return nodes
 }
