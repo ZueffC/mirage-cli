@@ -5,6 +5,7 @@ import (
 	"mirage-cli/internal/additions"
 	"os"
 	"os/exec"
+	"os/user"
 	"reflect"
 	"strconv"
 	"strings"
@@ -91,9 +92,17 @@ func Initialize() {
 					agreement = strings.ToLower(agreement)
 
 					if agreement == "yes" || agreement == "y" {
-						(exec.Command("mkdir ~/mirage-packages")).Run()
-						(exec.Command("cd ~/mirage-packages")).Run()
-						(exec.Command("git clone " + res.GitUrl + " .")).Run()
+						user, _ := user.Current()
+						homedir := strings.ToLower(user.HomeDir)
+						err := os.MkdirAll(homedir+"/mirage", os.ModePerm)
+
+						cmd := exec.Command("git", "clone", res.GitUrl)
+						cmd.Dir = homedir + "/mirage"
+						cmd.Run()
+
+						if err != nil {
+							panic(err)
+						}
 					} else {
 						color.HiRed("Installation was stopped")
 					}
