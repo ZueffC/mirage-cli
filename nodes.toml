@@ -1,1 +1,1 @@
-Nodes = ["http://localhost:8080"]
+Nodes = ["https://mirage-node.herokuapp.com"]
