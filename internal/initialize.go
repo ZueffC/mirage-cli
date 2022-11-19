@@ -6,10 +6,12 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
@@ -24,8 +26,18 @@ func Initialize() {
 	var config Nodes
 
 	yearNow := strconv.Itoa(time.Now().Year())
+	_, err := toml.DecodeFile("nodes.toml", &config)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
-	nodes := additions.TOMLParser(config, "nodes.toml")
+	typ, val := reflect.TypeOf(config), reflect.ValueOf(config)
+	nodes := make([]string, typ.NumField())
+
+	for i := 0; i < typ.NumField(); i++ {
+		nodes[i] = fmt.Sprintf("%v", val.Field(i).Interface())
+	}
 
 	App.Name = "mirage"
 	App.Usage = "blazingly fast package manager"
@@ -82,7 +94,7 @@ func Initialize() {
 						cmd.Dir = homedir + "/mirage"
 						cmd.Run()
 
-						//pathToPackage := homedir + "/mirage/" + name
+						pathToPackage := homedir + "/mirage/" + name
 
 						if err != nil {
 							panic(err)
