@@ -70,7 +70,7 @@ func Initialize() {
 	App.Name = "mirage"
 	App.Usage = "lightweight package manager"
 	App.UsageText = "mirage [command] [name of package] [flags]"
-	App.Copyright = "(C) " + yearNow + " ZueffC. By WTFPL License"
+	App.Copyright = "Copyright (c) " + yearNow + " ZueffC. Licensed under WTFPL License."
 
 	App.Authors = []*cli.Author{
 		{
