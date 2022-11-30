@@ -18,10 +18,10 @@ func InstallDependency(deps []string) {
 	ctn := strings.Contains
 
 	if ctn(nameOfDistr, "mint") || ctn(nameOfDistr, "debian") || ctn(nameOfDistr, "ubuntu") {
-		fmt.Println("debian based")
+		fmt.Println("Debian-based")
 		onDebianBased(deps)
 	} else if ctn(nameOfDistr, "arch") {
-		println("Arch based")
+		println("Arch-based")
 	}
 }
 

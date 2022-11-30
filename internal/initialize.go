@@ -68,9 +68,9 @@ func Initialize() {
 	yearNow := strconv.Itoa(time.Now().Year())
 
 	App.Name = "mirage"
-	App.Usage = "blazingly fast package manager"
+	App.Usage = "lightweight package manager"
 	App.UsageText = "mirage [command] [name of package] [flags]"
-	App.Copyright = "(C) " + yearNow + " ZueffC. By WTFPL License"
+	App.Copyright = "Copyright (c) " + yearNow + " ZueffC. Licensed under WTFPL License."
 
 	App.Authors = []*cli.Author{
 		{
@@ -83,7 +83,7 @@ func Initialize() {
 		&cli.Command{
 			Name:        "search",
 			Aliases:     []string{"s"},
-			Description: "this command will search package by name on nodes from yor .config file",
+			Description: "Search package by name on nodes from your .config file",
 			Action: func(ctx *cli.Context) error {
 				name := ctx.Args().Get(0)
 
@@ -93,7 +93,7 @@ func Initialize() {
 				if len(res.Name) > 0 {
 					additions.PrintInfo(res)
 				} else {
-					color.Red("No one package was found")
+					color.Red("No package was found")
 				}
 
 				return nil
@@ -103,7 +103,7 @@ func Initialize() {
 		&cli.Command{
 			Name:        "install",
 			Aliases:     []string{"i"},
-			Description: "this command will install package on your machine",
+			Description: "Install package on your machine",
 			Action: func(ctx *cli.Context) error {
 				var agreement string
 				name := ctx.Args().Get(0)
@@ -114,7 +114,7 @@ func Initialize() {
 				if len(res.Description) > 0 {
 					additions.PrintInfo(res)
 
-					fmt.Print("Do y wanna install it? [Y/N]: ")
+					fmt.Print("Proceed with installation? [Y/n]: ")
 					fmt.Scan(&agreement)
 
 					agreement = strings.ToLower(agreement)
@@ -140,7 +140,7 @@ func Initialize() {
 						color.HiRed("Installation was stopped")
 					}
 				} else {
-					color.Red("No one package found")
+					color.Red("No package was found")
 				}
 
 				return nil
