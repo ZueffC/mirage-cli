@@ -42,11 +42,10 @@ func parseNodes(path string) []string {
 }
 
 func parseDepencies(path string) []string {
-	type dependenciesStruct struct {
+	var deps []string
+	var dependencies struct {
 		Dependencies []string
 	}
-
-	var dependencies dependenciesStruct
 
 	_, err := toml.DecodeFile(path, &dependencies)
 	if err != nil {
@@ -54,11 +53,8 @@ func parseDepencies(path string) []string {
 		os.Exit(1)
 	}
 
-	typ, val := reflect.TypeOf(dependencies), reflect.ValueOf(dependencies)
-	deps := make([]string, typ.NumField())
-
-	for i := 0; i < typ.NumField(); i++ {
-		deps[i] = fmt.Sprintf("%s", val.Field(i).Interface())
+	for _, v := range dependencies.Dependencies {
+		deps = append(deps, v)
 	}
 
 	return deps

@@ -3,8 +3,11 @@ package additions
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 func InstallDependency(deps []string) {
@@ -26,8 +29,16 @@ func InstallDependency(deps []string) {
 }
 
 func onDebianBased(deps []string) {
+	if len(deps) <= 0 {
+		color.Green("[INFO] This package has no dependencies (unlike you)")
+		return
+	}
+
 	for _, v := range deps {
-		exec.Command("/bin/sh", "sudo apt install", v).CombinedOutput()
+		cmd := exec.Command("/bin/sh", "-c", "sudo apt install -y "+v)
+		cmd.Stderr, cmd.Stdin, cmd.Stdout = os.Stderr, os.Stdin, os.Stdout
+		cmd.Run()
 	}
 }
+
 func onArchBased(deps []string) {}
