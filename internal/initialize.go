@@ -6,59 +6,18 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
-	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
 
 var App cli.App
 
-func parseNodes(path string) []string {
-	type nodesStruct struct {
-		Nodes []string
-	}
-
-	var config nodesStruct
-
-	_, err := toml.DecodeFile("nodes.toml", &config)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	typ, val := reflect.TypeOf(config), reflect.ValueOf(config)
-	nodes := make([]string, typ.NumField())
-
-	for i := 0; i < typ.NumField(); i++ {
-		nodes[i] = fmt.Sprintf("%v", val.Field(i).Interface())
-	}
-
-	return nodes
-}
-
-func parseDepencies(path string) []string {
-	var deps []string
-	var dependencies struct {
-		Dependencies []string
-	}
-
-	_, err := toml.DecodeFile(path, &dependencies)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	for _, v := range dependencies.Dependencies {
-		deps = append(deps, v)
-	}
-
-	return deps
-}
+var userInfo, _ = user.Current()
+var pathToMirageFolder = strings.ToLower(userInfo.HomeDir) + "/.mirage"
+var informer = additions.Informer
 
 func Initialize() {
 	yearNow := strconv.Itoa(time.Now().Year())
@@ -83,13 +42,13 @@ func Initialize() {
 			Action: func(ctx *cli.Context) error {
 				name := ctx.Args().Get(0)
 
-				nodes := parseNodes("nodes.toml")
+				nodes := additions.ParseNodes("nodes.toml")
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
 
 				if len(res.Name) > 0 {
 					additions.PrintInfo(res)
 				} else {
-					color.Red("No package was found")
+					informer("error", "No package was found")
 				}
 
 				return nil
@@ -104,7 +63,7 @@ func Initialize() {
 				var agreement string
 				name := ctx.Args().Get(0)
 
-				nodes := parseNodes("nodes.toml")
+				nodes := additions.ParseNodes("nodes.toml")
 				res := additions.SearchByNameQuery(name, nodes[0][1:len(nodes[0])-1])
 
 				if len(res.Description) > 0 {
@@ -116,16 +75,14 @@ func Initialize() {
 					agreement = strings.ToLower(agreement)
 
 					if agreement == "yes" || agreement == "y" {
-						user, _ := user.Current()
-						homedir := strings.ToLower(user.HomeDir)
-						err := os.MkdirAll(homedir+"/.mirage", os.ModePerm)
+						err := os.MkdirAll(pathToMirageFolder, os.ModePerm)
 
 						cmd := exec.Command("git", "clone", res.GitUrl)
-						cmd.Dir = homedir + "/.mirage"
+						cmd.Dir = pathToMirageFolder
 						cmd.Run()
 
-						pathToPackage := homedir + "/.mirage/" + name + "/Mirage.toml"
-						deps := parseDepencies(pathToPackage)
+						pathToPackage := pathToMirageFolder + "/" + name + "/Mirage.toml"
+						deps := additions.ParseDependencies(pathToPackage)
 
 						additions.InstallDependency(deps)
 
@@ -133,15 +90,39 @@ func Initialize() {
 							panic(err)
 						}
 					} else {
-						color.HiRed("Installation was stopped")
+						informer("error", "Installation was stopped")
 					}
 				} else {
-					color.Red("No package was found")
+					informer("error", "No package was found")
 				}
 
 				return nil
 			},
 		},
-	}
 
+		&cli.Command{
+			Name:        "run",
+			Aliases:     []string{"r", "start"},
+			Description: "Starts app by entered name",
+			Action: func(ctx *cli.Context) error {
+				name := ctx.Args().Get(0)
+				packagePath := pathToMirageFolder + "/" + name
+
+				if _, err := os.Stat(packagePath); os.IsNotExist(err) {
+					informer("error", "You entered incorrect name of package. Please retry.")
+					return nil
+				}
+
+				informer("info", "Package found, starting app...")
+				runScript := (additions.ParseRunScript(packagePath + "/Mirage.toml"))[0]
+
+				cmd := exec.Command("/bin/sh", "-c", runScript)
+				cmd.Dir = packagePath
+				cmd.Stderr, cmd.Stdin, cmd.Stdout = os.Stderr, os.Stdin, os.Stdout
+				cmd.Run()
+
+				return nil
+			},
+		},
+	}
 }

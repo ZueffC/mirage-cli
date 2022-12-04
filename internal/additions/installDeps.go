@@ -24,7 +24,7 @@ func InstallDependency(deps []string) {
 		fmt.Println("Debian-based")
 		onDebianBased(deps)
 	} else if ctn(nameOfDistr, "arch") {
-		println("Arch-based")
+		onArchBased(deps)
 	}
 }
 
@@ -41,4 +41,15 @@ func onDebianBased(deps []string) {
 	}
 }
 
-func onArchBased(deps []string) {}
+func onArchBased(deps []string) {
+	if len(deps) <= 0 {
+		color.Green("[INFO] This package has no dependencies (unlike you)")
+		return
+	}
+
+	for _, v := range deps {
+		cmd := exec.Command("/bin/sh", "-c", "sudo pacman -S "+v)
+		cmd.Stderr, cmd.Stdin, cmd.Stdout = os.Stderr, os.Stdin, os.Stdout
+		cmd.Run()
+	}
+}
