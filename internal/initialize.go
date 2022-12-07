@@ -20,6 +20,8 @@ var pathToMirageFolder = strings.ToLower(userInfo.HomeDir) + "/.mirage"
 var informer = additions.Informer
 
 func Initialize() {
+	checkExistConf()
+	
 	yearNow := strconv.Itoa(time.Now().Year())
 
 	App.Name = "mirage"
